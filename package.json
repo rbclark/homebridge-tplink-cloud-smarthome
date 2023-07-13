@@ -1,0 +1,75 @@
+{
+  "name": "homebridge-tplink-cloud-smarthome",
+  "displayName": "Homebridge TPLink Smarthome",
+  "version": "0.0.1",
+  "description": "TPLink Cloud Smarthome plugin for Homebridge",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "tplink",
+    "kasa",
+    "homeautomation",
+    "automation",
+    "home",
+    "smarthome",
+    "smartplug",
+    "smartswitch",
+    "smartbulb"
+  ],
+  "bugs": {
+    "url": "https://github.com/rbclark/homebridge-tplink-cloud-smarthome/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rbclark/homebridge-tplink-cloud-smarthome.git"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/rbclark"
+  },
+  "license": "MIT",
+  "author": "Robert Clark",
+  "main": "lib/index.js",
+  "files": [
+    "config.schema.json",
+    "lib"
+  ],
+  "scripts": {
+    "prebuild": "npm run clean",
+    "build": "tsc --project tsconfig.source.json",
+    "clean": "rimraf lib/",
+    "clean:debug": "rimraf $PWD/test/homebridge/persist && npm run clean:debug:acc",
+    "clean:debug:acc": "rimraf $PWD/test/homebridge/accessories",
+    "debug": "npm run build && npm run debug:only",
+    "debug:only": "homebridge --debug --user-storage-path $PWD/test/homebridge --plugin-path .",
+    "lint": "eslint --ignore-path .gitignore --ext .js,.ts . && tsc --noEmit",
+    "prepare": "npm run build",
+    "start": "homebridge --plugin-path ."
+  },
+  "dependencies": {
+    "tplink-cloud-api": "0.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.17",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-deprecation": "^1.3.2",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-tsdoc": "^0.2.14",
+    "hap-nodejs": "^0.10.0",
+    "homebridge": "^1.4.0",
+    "prettier": "2.5.1",
+    "ts-essentials": "^9.1.2",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
+  },
+  "engines": {
+    "homebridge": ">=1.3.0",
+    "node": ">=12.20.0"
+  }
+}

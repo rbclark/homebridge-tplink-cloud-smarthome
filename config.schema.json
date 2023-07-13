@@ -1,0 +1,36 @@
+{
+  "pluginAlias": "TplinkCloudSmarthome",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "TP-Link Cloud Smart Home Plugin.",
+  "footerDisplay": "",
+  "schema": {
+    "type": "object",
+    "required": ["name", "email", "password"],
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "default": "TplinkCloudSmarthome",
+        "minLength": 1
+      },
+      "email": {
+        "title": "Email",
+        "type": "string",
+        "description": "Tplink Account Email",
+        "placeholder": "email@example.com"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string",
+        "description": "Tplink Account Password",
+        "placeholder": "password"
+      }
+    }
+  },
+  "layout": [
+    "name",
+    "email",
+    "password"
+  ]
+}
