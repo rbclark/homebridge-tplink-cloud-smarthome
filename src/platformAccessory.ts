@@ -22,35 +22,43 @@ export class KasaSwitchAccessory {
 
     // get the Switch service if it exists, otherwise create a new Switch service
     // you can create multiple services for each accessory
-    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.service = (this.accessory.context.device.getBrightness)
+      ? this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb)
+      : this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.alias);
 
-    // register handlers for the On/Off Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.On)
-      .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
-      .onGet(this.getOn.bind(this));               // GET - bind to the `getOn` method below
+      .onSet(this.setRelayOn.bind(this))
+      .onGet(this.getRelayOn.bind(this));
+
+    if (this.accessory.context.device.getBrightness) {
+      this.service.getCharacteristic(this.platform.Characteristic.Brightness)
+        .onSet(this.setBrightness.bind(this))
+        .onGet(this.getBrightness.bind(this));
+    }
   }
 
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, turning on a Switch.
-   */
-  async setOn(value: CharacteristicValue) {
+  async setRelayOn(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
     this.accessory.context.device.setRelayState(value);
   }
 
-  /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Switch is on.
-   */
-  async getOn(): Promise<CharacteristicValue> {
+  async getRelayOn(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const isOn = this.accessory.context.device.getRelayState();
-
+    const isOn = await this.accessory.context.device.getRelayState();
     return isOn;
+  }
+
+  async getBrightness(): Promise<CharacteristicValue> {
+    const brightness = this.accessory.context.device.getBrightness();
+
+    return brightness;
+  }
+
+  async setBrightness(value: CharacteristicValue) {
+    this.accessory.context.device.setBrightness(value);
   }
 }

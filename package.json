@@ -47,7 +47,7 @@
     "start": "homebridge --plugin-path ."
   },
   "dependencies": {
-    "tplink-cloud-api": "0.8.1"
+    "tplink-cloud-api": "github:rbclark/tplink-cloud-api"
   },
   "devDependencies": {
     "@types/node": "^17.0.17",

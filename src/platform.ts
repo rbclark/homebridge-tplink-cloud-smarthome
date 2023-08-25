@@ -28,54 +28,69 @@ export class TPLinkCloudPlatform implements DynamicPlatformPlugin {
 
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
-
-    // add the restored accessory to the accessories cache so we can track if it has already been registered
-    this.accessories.push(accessory);
+    this.accessories.push(accessory);  // add to the accessories cache
   }
 
   async discoverDevices() {
     const { email, password } = this.config as any;
 
     this.tplink = await login(email, password);
-
     const devices = await this.tplink.getDeviceList();
     this.log.debug('Discovered %s devices', devices.length);
 
     for (const device of devices) {
-      // See if an accessory with the same UUID has already been registered and restored from cached devices.
-      const deviceId = this.api.hap.uuid.generate(device.deviceId);
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === deviceId);
-      const deviceHandler = this.initKasaDevice(device);
+      const deviceHandler = await this.initKasaDevice(device);
 
-      if (existingAccessory) {
-        // The accessory already exists
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+      if (!deviceHandler) {
+        continue; // Skip devices without a recognized handler
+      }
 
-        existingAccessory.context.device = deviceHandler;
-
-        new KasaSwitchAccessory(this, existingAccessory);
-      } else if (deviceHandler) {
-        // The accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.alias);
-
-        // Create a new accessory
-        const accessory = new this.api.platformAccessory(device.alias, deviceId);
-
-        accessory.context.device = deviceHandler;
-
-        new KasaSwitchAccessory(this, accessory);
-
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      // Check for child devices
+      if (deviceHandler.getChildren) {
+        const children = await deviceHandler.getChildren();
+        for (const child of children) {
+          const childObj = await deviceHandler.getChild(child.alias);
+          this.handleDevice(childObj);  // Using same handler for child
+        }
+      } else {
+        // If no children, process the primary device
+        this.handleDevice(deviceHandler);
       }
     }
   }
 
-  private initKasaDevice(device: any) {
-    switch(device.deviceModel) {
+  handleDevice(device: any) {
+    const identifier = device.hasOwnProperty("child") ? device.child.id : device.id;
+    const deviceId = this.api.hap.uuid.generate(identifier);
+
+    const existingAccessory = this.accessories.find(accessory => accessory.UUID === deviceId);
+
+    if (existingAccessory) {
+      this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+      existingAccessory.context.device = device;
+      new KasaSwitchAccessory(this, existingAccessory);
+    } else {
+      this.log.info('Adding new accessory:', device.alias);
+      const accessory = new this.api.platformAccessory(device.alias, deviceId);
+      accessory.context.device = device;
+      new KasaSwitchAccessory(this, accessory);
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    }
+  }
+
+  private initKasaDevice(device: any): any {
+    switch (device.deviceModel) {
       case 'HS100(US)':
+      case 'HS103(US)':
       case 'HS200(US)':
         return this.tplink.getHS100(device.alias);
+      case 'KS230(US)':
+      case 'HS220(US)':
+        return this.tplink.getHS220(device.alias);
+      case 'EP40(US)':
+        return this.tplink.getHS300(device.alias);
       default:
+        console.log("Skipping device " + device.deviceModel);
         return null;
     }
   }
